@@ -1,7 +1,7 @@
 {
   "name": "tree-sitter-nelua",
   "version": "0.1.0",
-  "description": "A Nelua grammar for tree-sitter",
+  "description": "A tree-sitter grammar for Nelua",
   "repository": "github:tree-sitter/tree-sitter-nelua",
   "license": "MIT",
   "author": {

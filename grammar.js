@@ -1,5 +1,5 @@
 /**
- * @file A Nelua grammar for tree-sitter
+ * @file A tree-sitter grammar for Nelua
  * @author Komo <afiqquraisyzulkarnain@gmail.com>
  * @license MIT
  */
