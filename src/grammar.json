@@ -1,0 +1,114 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
+  "name": "nelua",
+  "rules": {
+    "chunk": {
+      "type": "SYMBOL",
+      "name": "_expressions"
+    },
+    "_expressions": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nil_literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nilptr_literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "boolean_literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "varargs"
+        }
+      ]
+    },
+    "nil_literal": {
+      "type": "STRING",
+      "value": "nil"
+    },
+    "nilptr_literal": {
+      "type": "STRING",
+      "value": "nilptr"
+    },
+    "boolean_literal": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "true"
+        },
+        {
+          "type": "STRING",
+          "value": "false"
+        }
+      ]
+    },
+    "varargs": {
+      "type": "STRING",
+      "value": "..."
+    },
+    "identifier": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "preprocess_name"
+        }
+      ]
+    },
+    "_identifier": {
+      "type": "PATTERN",
+      "value": "[_a-zA-Z][_a-zA-Z0-9]*"
+    },
+    "preprocess_name": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "#|"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "[^\\|][^#]"
+          },
+          "named": true,
+          "value": "lua_expression"
+        },
+        {
+          "type": "STRING",
+          "value": "|#"
+        }
+      ]
+    },
+    "aaa": {
+      "type": "STRING",
+      "value": ""
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "[\\s\\r]+"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": []
+}

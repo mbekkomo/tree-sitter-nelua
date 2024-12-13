@@ -1,0 +1,7 @@
+.devenv/
+.direnv/
+.ccls-cache/
+node_modules/
+*.so
+*.dll
+*.dylib
