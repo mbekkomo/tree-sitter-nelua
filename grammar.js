@@ -14,6 +14,14 @@ module.exports = grammar({
     /[\s\r]+/
   ],
 
+  externals: $ => [
+    $._start_preproc_name,
+    $._start_preproc_expr,
+    $._content_preproc_inline,
+    $._end_preproc_name,
+    $._end_preproc_expr,
+  ],
+
   rules: {
     chunk: $ => $._expressions,
     
@@ -35,7 +43,6 @@ module.exports = grammar({
     identifier: $ => choice($._identifier, $.preprocess_name),
     _identifier: _ => /[_a-zA-Z][_a-zA-Z0-9]*/,
 
-    preprocess_name: $ => seq("#|", alias(/[^\|][^#]/, $.lua_expression), "|#"),
-    aaa: $ => "",
+    preprocess_name: $ => seq($._start_preproc_name, alias($._content_preproc_inline, $.lua_expression), $._end_preproc_name),
   }
 });

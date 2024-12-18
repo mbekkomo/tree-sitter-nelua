@@ -29,6 +29,9 @@
         let
           pkgs = import nixpkgs {
             inherit system;
+            packageOverrides = pkgs_: {
+              stdenv = pkgs.llvmPackages_18.stdenv;
+            };
           };
         in
         {
