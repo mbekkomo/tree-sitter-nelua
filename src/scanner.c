@@ -97,19 +97,21 @@ bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
   if (valid_symbols[END_PREPROC_NAME] && preproc_end == '|' && scan_preproc_inline_end(lex)) {
     reset_state();
     lex->result_symbol = END_PREPROC_NAME;
+    lex->mark_end(lex);
     return true;
   }
 
   if (valid_symbols[END_PREPROC_EXPR] && preproc_end == ']' && scan_preproc_inline_end(lex)) {
     reset_state();
     lex->result_symbol = END_PREPROC_EXPR;
+    lex->mark_end(lex);
     return true;
   }
   
   if (valid_symbols[CONTENT_PREPROC_INLINE] &&
       scan_preproc_inline_content(lex)) {
-    consume(lex);
     lex->result_symbol = CONTENT_PREPROC_INLINE;
+    lex->mark_end(lex);
     return true;
   }
 
@@ -117,11 +119,13 @@ bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
 
   if (valid_symbols[START_PREPROC_NAME] && scan_preproc_inline_start(lex) && preproc_start == '|') {
     lex->result_symbol = START_PREPROC_NAME;
+    lex->mark_end(lex);
     return true;
   }
 
   if (valid_symbols[START_PREPROC_EXPR] && scan_preproc_inline_start(lex) && preproc_start == ']') {
     lex->result_symbol = START_PREPROC_EXPR;
+    lex->mark_end(lex);
     return true;
   }
 
