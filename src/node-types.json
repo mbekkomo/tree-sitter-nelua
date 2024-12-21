@@ -30,6 +30,10 @@
           "named": true
         },
         {
+          "type": "number",
+          "named": true
+        },
+        {
           "type": "varargs",
           "named": true
         }
@@ -39,44 +43,11 @@
   {
     "type": "identifier",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "preprocess_name",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "preprocess_name",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "lua_expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "#|",
-    "named": false
+    "fields": {}
   },
   {
     "type": "false",
     "named": false
-  },
-  {
-    "type": "lua_expression",
-    "named": true
   },
   {
     "type": "nil_literal",
@@ -87,15 +58,15 @@
     "named": true
   },
   {
+    "type": "number",
+    "named": true
+  },
+  {
     "type": "true",
     "named": false
   },
   {
     "type": "varargs",
     "named": true
-  },
-  {
-    "type": "|#",
-    "named": false
   }
 ]

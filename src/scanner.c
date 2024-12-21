@@ -11,6 +11,7 @@ enum TokenType {
 
 static inline void consume(TSLexer *lex) { lex->advance(lex, false); }
 static inline void skip(TSLexer *lex) { lex->advance(lex, true); }
+#define log(a, b, ...) (a)->log((a), "[tree-sitter-nelua] " b, __VA_ARGS__)
 
 char preproc_start = 0;
 char preproc_end = 0;
@@ -63,6 +64,7 @@ static bool scan_preproc_inline_end(TSLexer *lex) {
 
 static bool scan_preproc_inline_content(TSLexer *lex) {
   while (lex->lookahead != 0) {
+    log(lex, "x %d", lex->lookahead);
     consume(lex);
     if (lex->lookahead == preproc_end) {
       return true;
@@ -94,38 +96,37 @@ void tree_sitter_nelua_external_scanner_deserialize(void *payload,
 
 bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
                                              const bool *valid_symbols) {
-  if (valid_symbols[END_PREPROC_NAME] && preproc_end == '|' && scan_preproc_inline_end(lex)) {
+  if (valid_symbols[END_PREPROC_NAME] && preproc_end == '|' &&
+      scan_preproc_inline_end(lex)) {
     reset_state();
     lex->result_symbol = END_PREPROC_NAME;
-    lex->mark_end(lex);
     return true;
   }
 
-  if (valid_symbols[END_PREPROC_EXPR] && preproc_end == ']' && scan_preproc_inline_end(lex)) {
+  if (valid_symbols[END_PREPROC_EXPR] && preproc_end == ']' &&
+      scan_preproc_inline_end(lex)) {
     reset_state();
     lex->result_symbol = END_PREPROC_EXPR;
-    lex->mark_end(lex);
     return true;
   }
-  
+
   if (valid_symbols[CONTENT_PREPROC_INLINE] &&
       scan_preproc_inline_content(lex)) {
     lex->result_symbol = CONTENT_PREPROC_INLINE;
-    lex->mark_end(lex);
     return true;
   }
 
   skip_whitespaces(lex);
 
-  if (valid_symbols[START_PREPROC_NAME] && scan_preproc_inline_start(lex) && preproc_start == '|') {
+  if (valid_symbols[START_PREPROC_NAME] && scan_preproc_inline_start(lex) &&
+      preproc_start == '|') {
     lex->result_symbol = START_PREPROC_NAME;
-    lex->mark_end(lex);
     return true;
   }
 
-  if (valid_symbols[START_PREPROC_EXPR] && scan_preproc_inline_start(lex) && preproc_start == ']') {
+  if (valid_symbols[START_PREPROC_EXPR] && scan_preproc_inline_start(lex) &&
+      preproc_start == '[') {
     lex->result_symbol = START_PREPROC_EXPR;
-    lex->mark_end(lex);
     return true;
   }
 
