@@ -23,15 +23,17 @@ module.exports = grammar({
   ],
 
   rules: {
-    chunk: $ => $._expressions,
+    chunk: $ => $._expression,
 
-    _expressions: $ => choice(
+    _expression: $ => choice(
       $.number,
       $.identifier,
       $.nil_literal,
       $.nilptr_literal,
       $.boolean_literal,
       $.varargs,
+      $.table_constructor,
+      $.preprocess_expr,
     ),
 
     nil_literal: _ => "nil",
@@ -89,11 +91,33 @@ module.exports = grammar({
 			  ),
 			);
 
-			return seq(choice(decimal_number, hex_number, bin_number), optional($._identifier));
+			return seq(token(choice(decimal_number, hex_number, bin_number)), optional($._identifier));
 		},
 
+    table_constructor: $ => seq("{",  optional($.field_list), "}"),
 
-    identifier: $ => choice($._identifier),
+    field_list: $ => seq(
+      $.field_expression,
+      repeatable($.field_separator, $.field_expression),
+      optional($.field_separator)
+    ),
+    field_separator: _ => choice(",", ";"),
+    field_expression: $ => choice(
+      $._field_pair,
+      field("key", $._field_sugar_pair),
+      field("value", $._expression),
+    ),
+    _field_sugar_pair: $ => seq("=", $.identifier),
+		_field_pair: $ => seq(
+		  either(
+		    [field("key", $.identifier)],
+		    ["[", field("key", $._expression), "]"],
+		  ),
+		  "=",
+		  field("value", $._expression),
+		),
+
+    identifier: $ => choice($._identifier, $._preprocess_name),
     _identifier: _ => /[_a-zA-Z][_a-zA-Z0-9]*/,
     _preprocess_name: $ => seq(
       $._start_preproc_name,
@@ -111,6 +135,10 @@ module.exports = grammar({
 
 function any_of(...args) {
   return optional(choice(...args));
+}
+
+function repeatable(...args) {
+  return repeat(seq(...args));
 }
 
 function may_seq(...args) {
