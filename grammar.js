@@ -53,6 +53,16 @@ module.exports = grammar({
 			  [".", decimal_digits],
 			);
 
+			const hex_prefix = either(
+			  [hex_digits, may_seq(".", optional(hex_digits))],
+			  [".", hex_digits],
+			);
+
+			const bin_prefix = either(
+			  [bin_digits, may_seq(".", optional(bin_digits))],
+			  [".", bin_digits],
+			);
+
 			const decimal_number = seq(
 			  decimal_prefix,
 			  may_seq(
@@ -61,7 +71,25 @@ module.exports = grammar({
 			  ),
 			);
 
-			return token(choice(decimal_number));
+			const hex_number = seq(
+			  choice("0x", "0X"),
+			  hex_prefix,
+			  may_seq(
+			    choice("p", "P"),
+			    exp_digits,
+			  ),
+			);
+
+			const bin_number = seq(
+			  choice("0b", "0B"),
+			  bin_prefix,
+			  may_seq(
+			    choice("p", "P"),
+			    exp_digits,
+			  ),
+			);
+
+			return seq(choice(decimal_number, hex_number, bin_number), optional($._identifier));
 		},
 
 

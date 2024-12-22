@@ -46,6 +46,51 @@
     "fields": {}
   },
   {
+    "type": "number",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "+",
+    "named": false
+  },
+  {
+    "type": "-",
+    "named": false
+  },
+  {
+    "type": ".",
+    "named": false
+  },
+  {
+    "type": "0B",
+    "named": false
+  },
+  {
+    "type": "0X",
+    "named": false
+  },
+  {
+    "type": "0b",
+    "named": false
+  },
+  {
+    "type": "0x",
+    "named": false
+  },
+  {
+    "type": "E",
+    "named": false
+  },
+  {
+    "type": "P",
+    "named": false
+  },
+  {
+    "type": "e",
+    "named": false
+  },
+  {
     "type": "false",
     "named": false
   },
@@ -58,8 +103,8 @@
     "named": true
   },
   {
-    "type": "number",
-    "named": true
+    "type": "p",
+    "named": false
   },
   {
     "type": "true",
