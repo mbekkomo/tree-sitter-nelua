@@ -3,10 +3,13 @@
 
 enum TokenType {
   START_PREPROC_NAME,
-  START_PREPROC_EXPR,
-  CONTENT_PREPROC_INLINE,
   END_PREPROC_NAME,
+  START_PREPROC_EXPR,
   END_PREPROC_EXPR,
+  CONTENT_PREPROC_INLINE,
+  START_BLOCK,
+  END_BLOCK,
+  CONTENT_BLOCK,
 };
 
 static inline void consume(TSLexer *lex) { lex->advance(lex, false); }
@@ -15,14 +18,19 @@ static inline void skip(TSLexer *lex) { lex->advance(lex, true); }
 
 char preproc_start = 0;
 char preproc_end = 0;
+uint64_t block_length = 0;
 
 static inline void reset_state() {
   preproc_start = 0;
   preproc_end = 0;
+  block_length = 0;
 }
 
 static inline void skip_whitespaces(TSLexer *lexer) {
-  while (iswspace(lexer->lookahead)) {
+  while (true) {
+    if (!iswspace(lexer->lookahead)) {
+      break;
+    }
     skip(lexer);
   }
 }
@@ -64,10 +72,13 @@ static bool scan_preproc_inline_end(TSLexer *lex) {
 
 static bool scan_preproc_inline_content(TSLexer *lex) {
   while (lex->lookahead != 0) {
-    log(lex, "x %d", lex->lookahead);
-    consume(lex);
     if (lex->lookahead == preproc_end) {
-      return true;
+      lex->mark_end(lex);
+      if (scan_preproc_inline_end(lex)) {
+        return true;
+      }
+    } else {
+      consume(lex);
     }
   }
 
@@ -81,7 +92,8 @@ unsigned tree_sitter_nelua_external_scanner_serialize(void *payload,
                                                       char *buffer) {
   buffer[0] = preproc_start;
   buffer[1] = preproc_end;
-  return 2;
+  buffer[2] = block_length;
+  return 3;
 }
 void tree_sitter_nelua_external_scanner_deserialize(void *payload,
                                                     const char *buffer,
@@ -92,19 +104,20 @@ void tree_sitter_nelua_external_scanner_deserialize(void *payload,
   if (length == 1)
     return;
   preproc_end = buffer[1];
+  if (length == 2)
+    return;
+  block_length = buffer[2];
 }
 
 bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
                                              const bool *valid_symbols) {
-  if (valid_symbols[END_PREPROC_NAME] && preproc_end == '|' &&
-      scan_preproc_inline_end(lex)) {
+  if (valid_symbols[END_PREPROC_NAME] && scan_preproc_inline_end(lex)) {
     reset_state();
     lex->result_symbol = END_PREPROC_NAME;
     return true;
   }
 
-  if (valid_symbols[END_PREPROC_EXPR] && preproc_end == ']' &&
-      scan_preproc_inline_end(lex)) {
+  if (valid_symbols[END_PREPROC_EXPR] && scan_preproc_inline_end(lex)) {
     reset_state();
     lex->result_symbol = END_PREPROC_EXPR;
     return true;
