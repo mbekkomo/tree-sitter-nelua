@@ -135,7 +135,22 @@ module.exports = grammar({
     ),
     _field_separator: _ => choice(",", ";"),
 
-    type: $ => seq("@", $.identifier),
+    type: $ => seq("@", $._type),
+
+    _type: $ => choice(
+      $.identifier,
+      $._id_suffixed,
+      $._type_unary,
+    ),
+    _type_unary: $ => seq(
+      choice($.type_pointer, $.type_optional, $.type_array),
+      $._type,
+    ),
+    _type_variants: $ => seq($._type, atleast_amount_of("|", $._type)),
+    type_pointer: _ => "*",
+    type_optional: _ => "?",
+    type_array: $ => seq("[", optional($._expression), "]"),
+
 
     binary_operation: $ => choice(
       ...[
@@ -183,6 +198,7 @@ module.exports = grammar({
       $._end_preproc_name,
     ),
 
+
     preprocess_expr: $ => seq(
       $._start_preproc_expr,
       alias(
@@ -192,11 +208,19 @@ module.exports = grammar({
       ),
       $._end_preproc_expr,
     ),
-  }
+
+    // idsuffixed      <-- (id DotIndex+)~>rfoldright
+    _id_suffixed: $ => seq($.identifier, atleast_amount_of(".", $.identifier)),
+  },
+
 });
 
 function any_of(...args) {
   return optional(choice(...args));
+}
+
+function atleast_amount_of(...args) {
+  return repeat1(seq(...args));
 }
 
 function repeatable(...args) {
