@@ -5,7 +5,10 @@
       "camelcase": "Nelua",
       "scope": "source.nelua",
       "path": ".",
-      "file-types": null,
+      "file-types": [
+        "nelua"
+      ],
+      "first-line-regex": "#!.*\\bnelua$",
       "injection-regex": "^nelua$"
     }
   ],
@@ -21,7 +24,7 @@
     ],
     "links": {
       "repository": "https://github.com/mbekkomo/tree-sitter-nelua"
-    }
+    },
   },
   "bindings": {
     "c": true,

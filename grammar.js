@@ -8,25 +8,33 @@
 // @ts-check
 
 const PREC = {
-  OR: 1,  /* or */
-  AND: 2, /* and */
-  COMP: 3,  /* < > <= >= ~= == */
-  BITOR: 4, /* | */
-  BITXOR: 5, /* ~ */
-  BITAND: 6, /* & */
-  BITSHIFT: 7, /* << >>> << */
-  CONCAT: 8, /* .. */
-  ARITH: 9,  /* + - */
-  FACTOR: 10, /* * /// // / %%% % */
-  UNARY: 11, /* not - # ~ & */
-  POW: 12,   /* ^ */
+  LIST: -1,
+  DEFAULT: 1,
+
+  OR: 2,  /* or */
+  AND: 3, /* and */
+  COMP: 4,  /* < > <= >= ~= == */
+  BITOR: 6, /* | */
+  BITXOR: 7, /* ~ */
+  BITAND: 8, /* & */
+  BITSHIFT: 9, /* << >>> << */
+  CONCAT: 10, /* .. */
+  ARITH: 11,  /* + - */
+  FACTOR: 12, /* * /// // / %%% % */
+  UNARY: 13, /* not - # ~ & */
+  POW: 14,   /* ^ */
+
+  TGENERIC: 2,
+  TVARIANTS: 3,
+  TUNARY: 4,
 };
 
 module.exports = grammar({
   name: "nelua",
 
-  extras: _ => [
-    /[\s\r]+/
+  extras: $ => [
+    /[\s\r]+/,
+    $.comment,
   ],
 
   externals: $ => [
@@ -35,13 +43,36 @@ module.exports = grammar({
     $._start_preproc_expr,
     $._end_preproc_expr,
     $._content_preproc_inline,
+    $.string_opening,
+    $.string_ending,
+    $.string_content,
+    $._block_comment_opening,
+    $._block_comment_ending,
+    $._block_comment_content,
+  ],
+
+  conflicts: $ => [
+    [$._expression, $._variable],
+    [$._expression, $._variable, $._type],
+  ],
+
+  inline: $ => [
+    $.comment,
   ],
 
   rules: {
     chunk: $ => $._expression,
 
+    comment: $ => either(
+      ["--", /[^\n\r]*/],
+      [$._block_comment_opening, $._block_comment_content, $._block_comment_ending],
+    ),
+
     _expression: $ => choice(
+      $._parentheses_exp,
+      $.prefix_exp,
       $.number,
+      $.string,
       $.identifier,
       $.nil_literal,
       $.nilptr_literal,
@@ -53,6 +84,18 @@ module.exports = grammar({
       $.binary_operation,
       $.unary_operation,
     ),
+
+    prefix_exp: $ => choice(
+      $._variable,
+    ),
+
+    _variable: $ => either(
+      [$.identifier],
+      [$.prefix_exp, ".", $.identifier],
+      [$.prefix_exp, "[", $._expression, "]"]
+    ),
+
+    _parentheses_exp: $ => seq("(", $._expression, ")"),
 
     nil_literal: _ => "nil",
     nilptr_literal: _ => "nilptr",
@@ -109,14 +152,23 @@ module.exports = grammar({
         ),
       );
 
-      return seq(token(choice(decimal_number, hex_number, bin_number)), optional($._identifier));
+      return seq(
+        field("number", token(choice(decimal_number, hex_number, bin_number))),
+        field("suffix", optional($._identifier)),
+      );
     },
+
+    string: $ => seq(
+      field("opening", $.string_opening),
+      field("content", $.string_content),
+      field("ending", $.string_ending),
+    ),
 
     table_constructor: $ => seq("{", optional($.field_list), "}"),
 
     field_list: $ => seq(
       $.field_expression,
-      repeatable($._field_separator, $.field_expression),
+      any_amount_of($._field_separator, $.field_expression),
       optional($._field_separator)
     ),
     field_expression: $ => choice(
@@ -135,22 +187,7 @@ module.exports = grammar({
     ),
     _field_separator: _ => choice(",", ";"),
 
-    type: $ => seq("@", $._type),
-
-    _type: $ => choice(
-      $.identifier,
-      $._id_suffixed,
-      $._type_unary,
-    ),
-    _type_unary: $ => seq(
-      choice($.type_pointer, $.type_optional, $.type_array),
-      $._type,
-    ),
-    _type_variants: $ => seq($._type, atleast_amount_of("|", $._type)),
-    type_pointer: _ => "*",
-    type_optional: _ => "?",
-    type_array: $ => seq("[", optional($._expression), "]"),
-
+    type: $ => prec.left(seq("@", $._type)),
 
     binary_operation: $ => choice(
       ...[
@@ -190,8 +227,9 @@ module.exports = grammar({
       $._expression,
     )),
 
-    identifier: $ => choice($._identifier, $._preprocess_name),
-    _identifier: _ => /[_a-zA-Z][_a-zA-Z0-9]*/,
+    identifier: $ => $._identifier,
+    _identifier: $ => choice($._name, $._preprocess_name),
+    _name: _ => /[_a-zA-Z][_a-zA-Z0-9]*/,
     _preprocess_name: $ => seq(
       $._start_preproc_name,
       alias($._content_preproc_inline, $.lua_expression),
@@ -210,9 +248,37 @@ module.exports = grammar({
     ),
 
     // idsuffixed      <-- (id DotIndex+)~>rfoldright
-    _id_suffixed: $ => seq($.identifier, atleast_amount_of(".", $.identifier)),
-  },
+    _id_suffixed: $ => prec(PREC.DEFAULT, seq($.identifier, atleast_amount_of(".", $.identifier))),
 
+    _type: $ => choice(
+      field("type", $.identifier),
+      field("type", $._id_suffixed),
+      $._type_unary,
+      $._type_variants,
+      $._type_generic,
+    ),
+    _type_unary: $ => prec.left(PREC.TUNARY, seq(
+      field("suffix", choice($.type_pointer, $.type_optional, $.type_array)),
+      field("type", $._type),
+    )),
+    _type_variants: $ => prec.left(PREC.TVARIANTS, seq($._type, atleast_amount_of("|", $._type))),
+    _type_generic: $ => prec.left(PREC.TGENERIC, seq(
+      field("type", $._type),
+      either(
+        ["(", field("args", optional($.type_args)), ")"],
+        [$.table_constructor],
+      ),
+    )),
+    type_pointer: _ => "*",
+    type_optional: _ => "?",
+    type_array: $ => seq("[", optional($._expression), "]"),
+
+    type_args: $ => prec(PREC.LIST, choice(
+      seq($._type_arg, any_amount_of(",", $._type_arg)),
+      $.table_constructor,
+    )),
+    _type_arg: $ => choice($._type, $._expression),
+  },
 });
 
 function any_of(...args) {
@@ -223,7 +289,7 @@ function atleast_amount_of(...args) {
   return repeat1(seq(...args));
 }
 
-function repeatable(...args) {
+function any_amount_of(...args) {
   return repeat(seq(...args));
 }
 

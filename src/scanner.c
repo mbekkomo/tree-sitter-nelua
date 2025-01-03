@@ -2,27 +2,46 @@
 #include <wctype.h>
 
 enum TokenType {
-  START_PREPROC_NAME,
-  END_PREPROC_NAME,
-  START_PREPROC_EXPR,
-  END_PREPROC_EXPR,
-  CONTENT_PREPROC_INLINE,
-  START_BLOCK,
-  END_BLOCK,
-  CONTENT_BLOCK,
+  PREPROC_NAME_OPENING,
+  PREPROC_NAME_ENDING,
+
+  PREPROC_EXPR_OPENING,
+  PREPROC_EXPR_ENDING,
+
+  PREPROC_INLINE_CONTENT,
+
+  STRING_OPENING,
+  STRING_ENDING,
+  STRING_CONTENT,
+
+  BLOCK_COMMENT_OPENING,
+  BLOCK_COMMENT_ENDING,
+  BLOCK_COMMENT_CONTENT,
 };
 
 static inline void consume(TSLexer *lex) { lex->advance(lex, false); }
+static inline uint64_t consume_length(TSLexer *lex, int32_t ch) {
+  uint64_t length;
+  for (length = 0; lex->lookahead == ch; length++) {
+    consume(lex);
+  }
+  return length;
+}
 static inline void skip(TSLexer *lex) { lex->advance(lex, true); }
-#define log(a, b, ...) (a)->log((a), "[tree-sitter-nelua] " b, __VA_ARGS__)
+
+#define log(a, b, ...) a->log(a, "[tree-sitter-nelua] " b, __VA_ARGS__)
+#define string(a)                                                              \
+  (char[1]) { a }
 
 char preproc_start = 0;
 char preproc_end = 0;
+char string_ending = 0;
 uint64_t block_length = 0;
 
 static inline void reset_state() {
   preproc_start = 0;
   preproc_end = 0;
+  string_ending = 0;
   block_length = 0;
 }
 
@@ -44,7 +63,35 @@ static bool start_end_pair(TSLexer *lex) {
   return false;
 }
 
-static bool scan_preproc_inline_start(TSLexer *lex) {
+void *tree_sitter_nelua_external_scanner_create() { return NULL; }
+void tree_sitter_nelua_external_scanner_destroy(void *payload) {}
+
+unsigned tree_sitter_nelua_external_scanner_serialize(void *payload,
+                                                      char *buffer) {
+  buffer[0] = preproc_start;
+  buffer[1] = preproc_end;
+  buffer[2] = block_length;
+  buffer[3] = string_ending;
+  return 4;
+}
+void tree_sitter_nelua_external_scanner_deserialize(void *payload,
+                                                    const char *buffer,
+                                                    unsigned length) {
+  if (length == 0)
+    return;
+  preproc_start = buffer[0];
+  if (length == 1)
+    return;
+  preproc_end = buffer[1];
+  if (length == 2)
+    return;
+  block_length = buffer[2];
+  if (length == 3)
+    return;
+  string_ending = buffer[3];
+}
+
+static bool scan_preproc_inline_opening(TSLexer *lex) {
   if (lex->lookahead == '#') {
     consume(lex);
     if (lex->lookahead == '|' || lex->lookahead == '[') {
@@ -58,7 +105,7 @@ static bool scan_preproc_inline_start(TSLexer *lex) {
   return false;
 }
 
-static bool scan_preproc_inline_end(TSLexer *lex) {
+static bool scan_preproc_inline_ending(TSLexer *lex) {
   if (preproc_end == 0)
     return false;
 
@@ -74,7 +121,7 @@ static bool scan_preproc_inline_content(TSLexer *lex) {
   while (lex->lookahead != 0) {
     if (lex->lookahead == preproc_end) {
       lex->mark_end(lex);
-      if (scan_preproc_inline_end(lex)) {
+      if (scan_preproc_inline_ending(lex)) {
         return true;
       }
     } else {
@@ -85,61 +132,184 @@ static bool scan_preproc_inline_content(TSLexer *lex) {
   return false;
 }
 
-void *tree_sitter_nelua_external_scanner_create() { return NULL; }
-void tree_sitter_nelua_external_scanner_destroy(void *payload) {}
+static bool scan_block_opening(TSLexer *lex) {
+  if (lex->lookahead != '[')
+    return false;
+  consume(lex);
 
-unsigned tree_sitter_nelua_external_scanner_serialize(void *payload,
-                                                      char *buffer) {
-  buffer[0] = preproc_start;
-  buffer[1] = preproc_end;
-  buffer[2] = block_length;
-  return 3;
+  block_length = consume_length(lex, '=');
+  log(lex, "block length: %d", block_length);
+
+  if (lex->lookahead != '[')
+    return false;
+  consume(lex);
+
+  return true;
 }
-void tree_sitter_nelua_external_scanner_deserialize(void *payload,
-                                                    const char *buffer,
-                                                    unsigned length) {
-  if (length == 0)
-    return;
-  preproc_start = buffer[0];
-  if (length == 1)
-    return;
-  preproc_end = buffer[1];
-  if (length == 2)
-    return;
-  block_length = buffer[2];
+
+static bool scan_block_ending(TSLexer *lex) {
+  if (lex->lookahead != ']')
+    return false;
+  consume(lex);
+
+  if (consume_length(lex, '=') != block_length)
+    return false;
+
+  if (lex->lookahead != ']')
+    return false;
+  consume(lex);
+
+  return true;
+}
+
+static bool scan_block_content(TSLexer *lex) {
+  while (lex->lookahead != 0) {
+    if (lex->lookahead == ']') {
+      lex->mark_end(lex);
+      if (scan_block_ending(lex)) {
+        return true;
+      }
+    } else {
+      consume(lex);
+    }
+  }
+
+  return false;
+}
+
+static bool scan_block_comment_opening(TSLexer *lex) {
+  if (lex->lookahead != '-')
+    return false;
+  consume(lex);
+
+  if (lex->lookahead != '-')
+    return false;
+  consume(lex);
+
+  return scan_block_opening(lex);
+}
+
+static bool scan_string_opening(TSLexer *lex) {
+  if (lex->lookahead == '[') {
+    return scan_block_opening(lex);
+  }
+
+  if (lex->lookahead == '\'' || lex->lookahead == '"') {
+    string_ending = lex->lookahead;
+    consume(lex);
+    return true;
+  }
+  return false;
+}
+
+static bool scan_string_ending(TSLexer *lex) {
+  if (lex->lookahead == ']')
+    return scan_block_ending(lex);
+
+  if (string_ending != 0 || lex->lookahead == string_ending) {
+    consume(lex);
+    return true;
+  }
+
+  return false;
+}
+
+static bool scan_string_content(TSLexer *lex) {
+  if (string_ending == 0)
+    return scan_block_content(lex);
+
+  while (lex->lookahead != 0) {
+    if (lex->lookahead == string_ending) {
+      return true;
+    }
+
+    if (lex->lookahead == '\\') {
+      consume(lex);
+      if (lex->lookahead == 'z') {
+        consume(lex);
+        while (iswspace(lex->lookahead)) {
+          consume(lex);
+        }
+        continue;
+      } else if (lex->lookahead == '\n') {
+        consume(lex);
+        continue;
+      }
+    }
+
+    if (lex->lookahead == '\n') {
+      return false;
+    }
+
+    consume(lex);
+  }
+
+  return false;
 }
 
 bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
                                              const bool *valid_symbols) {
-  if (valid_symbols[END_PREPROC_NAME] && scan_preproc_inline_end(lex)) {
+  if (valid_symbols[PREPROC_NAME_ENDING] && scan_preproc_inline_ending(lex)) {
     reset_state();
-    lex->result_symbol = END_PREPROC_NAME;
+    lex->result_symbol = PREPROC_NAME_ENDING;
     return true;
   }
 
-  if (valid_symbols[END_PREPROC_EXPR] && scan_preproc_inline_end(lex)) {
+  if (valid_symbols[PREPROC_EXPR_ENDING] && scan_preproc_inline_ending(lex)) {
     reset_state();
-    lex->result_symbol = END_PREPROC_EXPR;
+    lex->result_symbol = PREPROC_EXPR_ENDING;
     return true;
   }
 
-  if (valid_symbols[CONTENT_PREPROC_INLINE] &&
+  if (valid_symbols[STRING_ENDING] && scan_string_ending(lex)) {
+    reset_state();
+    lex->result_symbol = STRING_ENDING;
+    return true;
+  }
+
+  if (valid_symbols[BLOCK_COMMENT_ENDING] && scan_block_ending(lex)) {
+    reset_state();
+    lex->result_symbol = BLOCK_COMMENT_ENDING;
+    return true;
+  }
+
+  if (valid_symbols[PREPROC_INLINE_CONTENT] &&
       scan_preproc_inline_content(lex)) {
-    lex->result_symbol = CONTENT_PREPROC_INLINE;
+    lex->result_symbol = PREPROC_INLINE_CONTENT;
+    return true;
+  }
+
+  if (valid_symbols[STRING_CONTENT] && scan_string_content(lex)) {
+    lex->result_symbol = STRING_CONTENT;
+    return true;
+  }
+
+  if (valid_symbols[BLOCK_COMMENT_CONTENT] && scan_block_content(lex)) {
+    lex->result_symbol = BLOCK_COMMENT_CONTENT;
     return true;
   }
 
   skip_whitespaces(lex);
 
-  if (valid_symbols[START_PREPROC_NAME] && scan_preproc_inline_start(lex) &&
+  if (valid_symbols[PREPROC_NAME_OPENING] && scan_preproc_inline_opening(lex) &&
       preproc_start == '|') {
-    lex->result_symbol = START_PREPROC_NAME;
+    lex->result_symbol = PREPROC_NAME_OPENING;
     return true;
   }
 
-  if (valid_symbols[START_PREPROC_EXPR] && scan_preproc_inline_start(lex) &&
+  if (valid_symbols[PREPROC_EXPR_OPENING] && scan_preproc_inline_opening(lex) &&
       preproc_start == '[') {
-    lex->result_symbol = START_PREPROC_EXPR;
+    lex->result_symbol = PREPROC_EXPR_OPENING;
+    return true;
+  }
+
+  if (valid_symbols[STRING_OPENING] && scan_string_opening(lex)) {
+    lex->result_symbol = STRING_OPENING;
+    return true;
+  }
+
+  if (valid_symbols[BLOCK_COMMENT_OPENING] && scan_block_comment_opening(lex)) {
+    lex->result_symbol = BLOCK_COMMENT_OPENING;
     return true;
   }
 

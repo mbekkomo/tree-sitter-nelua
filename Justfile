@@ -5,4 +5,4 @@ build:
     tree-sitter build
 
 testfile:
-    tree-sitter parse testfile
+    tree-sitter parse -d testfile
