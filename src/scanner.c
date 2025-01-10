@@ -19,6 +19,12 @@ enum TokenType {
   BLOCK_COMMENT_CONTENT,
 };
 
+enum PreprocEndingType {
+  PREPROC_ENDING_INVALID = 0,
+  PREPROC_ENDING_NAME,
+  PREPROC_ENDING_EXPR,
+};
+
 static inline void consume(TSLexer *lex) { lex->advance(lex, false); }
 static inline uint64_t consume_length(TSLexer *lex, int32_t ch) {
   uint64_t length;
@@ -33,14 +39,12 @@ static inline void skip(TSLexer *lex) { lex->advance(lex, true); }
 #define string(a)                                                              \
   (char[1]) { a }
 
-char preproc_start = 0;
-char preproc_end = 0;
+char preproc_ending = 0;
 char string_ending = 0;
 uint64_t block_length = 0;
 
 static inline void reset_state() {
-  preproc_start = 0;
-  preproc_end = 0;
+  preproc_ending = 0;
   string_ending = 0;
   block_length = 0;
 }
@@ -54,49 +58,35 @@ static inline void skip_whitespaces(TSLexer *lexer) {
   }
 }
 
-static bool start_end_pair(TSLexer *lex) {
-  if (preproc_start == '[' && lex->lookahead == preproc_end ||
-      preproc_start == '|') {
-    consume(lex);
-    return true;
-  }
-  return false;
-}
-
 void *tree_sitter_nelua_external_scanner_create() { return NULL; }
 void tree_sitter_nelua_external_scanner_destroy(void *payload) {}
 
 unsigned tree_sitter_nelua_external_scanner_serialize(void *payload,
                                                       char *buffer) {
-  buffer[0] = preproc_start;
-  buffer[1] = preproc_end;
-  buffer[2] = block_length;
-  buffer[3] = string_ending;
-  return 4;
+  buffer[0] = preproc_ending;
+  buffer[1] = block_length;
+  buffer[2] = string_ending;
+  return 3;
 }
 void tree_sitter_nelua_external_scanner_deserialize(void *payload,
                                                     const char *buffer,
                                                     unsigned length) {
   if (length == 0)
     return;
-  preproc_start = buffer[0];
+  preproc_ending = buffer[0];
   if (length == 1)
     return;
-  preproc_end = buffer[1];
+  block_length = buffer[1];
   if (length == 2)
     return;
-  block_length = buffer[2];
-  if (length == 3)
-    return;
-  string_ending = buffer[3];
+  string_ending = buffer[2];
 }
 
-static bool scan_preproc_inline_opening(TSLexer *lex) {
+static bool scan_preproc_inline_opening(TSLexer *lex, char opening) {
   if (lex->lookahead == '#') {
     consume(lex);
-    if (lex->lookahead == '|' || lex->lookahead == '[') {
-      preproc_start = lex->lookahead;
-      preproc_end = lex->lookahead == '[' ? ']' : '|';
+    if (lex->lookahead == opening) {
+      preproc_ending = opening == '[' ? ']' : '|';
       consume(lex);
       return true;
     }
@@ -105,13 +95,17 @@ static bool scan_preproc_inline_opening(TSLexer *lex) {
   return false;
 }
 
-static bool scan_preproc_inline_ending(TSLexer *lex) {
-  if (preproc_end == 0)
+static bool scan_preproc_inline_ending(TSLexer *lex, char ending) {
+  if (preproc_ending == 0)
     return false;
 
-  if (start_end_pair(lex) && lex->lookahead == '#') {
+  if (ending != 0 ? lex->lookahead == preproc_ending && preproc_ending == ending
+                  : lex->lookahead == ']' || lex->lookahead == '|') {
     consume(lex);
-    return true;
+    if (lex->lookahead == '#') {
+      consume(lex);
+      return true;
+    }
   }
 
   return false;
@@ -119,9 +113,9 @@ static bool scan_preproc_inline_ending(TSLexer *lex) {
 
 static bool scan_preproc_inline_content(TSLexer *lex) {
   while (lex->lookahead != 0) {
-    if (lex->lookahead == preproc_end) {
+    if (lex->lookahead == preproc_ending) {
       lex->mark_end(lex);
-      if (scan_preproc_inline_ending(lex)) {
+      if (scan_preproc_inline_ending(lex, 0)) {
         return true;
       }
     } else {
@@ -249,15 +243,17 @@ static bool scan_string_content(TSLexer *lex) {
 
 bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
                                              const bool *valid_symbols) {
-  if (valid_symbols[PREPROC_NAME_ENDING] && scan_preproc_inline_ending(lex)) {
+  if (valid_symbols[PREPROC_EXPR_ENDING] &&
+      scan_preproc_inline_ending(lex, ']')) {
     reset_state();
-    lex->result_symbol = PREPROC_NAME_ENDING;
+    lex->result_symbol = PREPROC_EXPR_ENDING;
     return true;
   }
 
-  if (valid_symbols[PREPROC_EXPR_ENDING] && scan_preproc_inline_ending(lex)) {
+  if (valid_symbols[PREPROC_NAME_ENDING] &&
+      scan_preproc_inline_ending(lex, '|')) {
     reset_state();
-    lex->result_symbol = PREPROC_EXPR_ENDING;
+    lex->result_symbol = PREPROC_NAME_ENDING;
     return true;
   }
 
@@ -291,15 +287,15 @@ bool tree_sitter_nelua_external_scanner_scan(void *payload, TSLexer *lex,
 
   skip_whitespaces(lex);
 
-  if (valid_symbols[PREPROC_NAME_OPENING] && scan_preproc_inline_opening(lex) &&
-      preproc_start == '|') {
-    lex->result_symbol = PREPROC_NAME_OPENING;
+  if (valid_symbols[PREPROC_EXPR_OPENING] &&
+      scan_preproc_inline_opening(lex, '[')) {
+    lex->result_symbol = PREPROC_EXPR_OPENING;
     return true;
   }
 
-  if (valid_symbols[PREPROC_EXPR_OPENING] && scan_preproc_inline_opening(lex) &&
-      preproc_start == '[') {
-    lex->result_symbol = PREPROC_EXPR_OPENING;
+  if (valid_symbols[PREPROC_NAME_OPENING] &&
+      scan_preproc_inline_opening(lex, '|')) {
+    lex->result_symbol = PREPROC_NAME_OPENING;
     return true;
   }
 

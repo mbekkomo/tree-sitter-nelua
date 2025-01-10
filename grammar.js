@@ -240,8 +240,7 @@ module.exports = grammar({
     preprocess_expr: $ => seq(
       $._start_preproc_expr,
       alias(
-        // $._content_preproc_inline,
-        "aaa",
+        $._content_preproc_inline,
         $.lua_expression
       ),
       $._end_preproc_expr,

@@ -1434,8 +1434,8 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "STRING",
-            "value": "aaa"
+            "type": "SYMBOL",
+            "name": "_content_preproc_inline"
           },
           "named": true,
           "value": "lua_expression"
