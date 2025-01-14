@@ -132,7 +132,187 @@
     }
   },
   {
-    "type": "field_expression",
+    "type": "comment",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "identifier",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "lua_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "number",
+    "named": true,
+    "fields": {
+      "suffix": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "lua_expression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "prefix_exp",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "binary_operation",
+          "named": true
+        },
+        {
+          "type": "boolean_literal",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "nil_literal",
+          "named": true
+        },
+        {
+          "type": "nilptr_literal",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "prefix_exp",
+          "named": true
+        },
+        {
+          "type": "preprocess_expr",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "table_constructor",
+          "named": true
+        },
+        {
+          "type": "type",
+          "named": true
+        },
+        {
+          "type": "unary_operation",
+          "named": true
+        },
+        {
+          "type": "varargs",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "preprocess_expr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "lua_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "string",
+    "named": true,
+    "fields": {
+      "content": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "string_content",
+            "named": true
+          }
+        ]
+      },
+      "ending": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "string_ending",
+            "named": true
+          }
+        ]
+      },
+      "opening": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "string_opening",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "string_content",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "table_constructor",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "table_field",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "table_field",
     "named": true,
     "fields": {
       "key": {
@@ -270,224 +450,13 @@
     }
   },
   {
-    "type": "field_list",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "field_expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "identifier",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "lua_expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "number",
-    "named": true,
-    "fields": {
-      "suffix": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "lua_expression",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "prefix_exp",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "binary_operation",
-          "named": true
-        },
-        {
-          "type": "boolean_literal",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "nil_literal",
-          "named": true
-        },
-        {
-          "type": "nilptr_literal",
-          "named": true
-        },
-        {
-          "type": "number",
-          "named": true
-        },
-        {
-          "type": "prefix_exp",
-          "named": true
-        },
-        {
-          "type": "preprocess_expr",
-          "named": true
-        },
-        {
-          "type": "string",
-          "named": true
-        },
-        {
-          "type": "table_constructor",
-          "named": true
-        },
-        {
-          "type": "type",
-          "named": true
-        },
-        {
-          "type": "unary_operation",
-          "named": true
-        },
-        {
-          "type": "varargs",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "preprocess_expr",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "lua_expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "string",
-    "named": true,
-    "fields": {
-      "content": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "string_content",
-            "named": true
-          }
-        ]
-      },
-      "ending": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "string_ending",
-            "named": true
-          }
-        ]
-      },
-      "opening": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "string_opening",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "table_constructor",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "field_list",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "type",
     "named": true,
     "fields": {
-      "args": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "type_args",
-            "named": true
-          }
-        ]
-      },
-      "suffix": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "type_array",
-            "named": true
-          },
-          {
-            "type": "type_optional",
-            "named": true
-          },
-          {
-            "type": "type_pointer",
-            "named": true
-          }
-        ]
-      },
       "type": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
-          {
-            "type": "(",
-            "named": false
-          },
-          {
-            "type": ")",
-            "named": false
-          },
           {
             "type": ".",
             "named": false
@@ -495,40 +464,48 @@
           {
             "type": "identifier",
             "named": true
-          },
-          {
-            "type": "table_constructor",
-            "named": true
-          },
-          {
-            "type": "type_args",
-            "named": true
-          },
-          {
-            "type": "type_array",
-            "named": true
-          },
-          {
-            "type": "type_optional",
-            "named": true
-          },
-          {
-            "type": "type_pointer",
-            "named": true
-          },
-          {
-            "type": "|",
-            "named": false
           }
         ]
       }
     },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "types": [
         {
-          "type": "table_constructor",
+          "type": "type_array",
+          "named": true
+        },
+        {
+          "type": "type_enum",
+          "named": true
+        },
+        {
+          "type": "type_generic",
+          "named": true
+        },
+        {
+          "type": "type_pointer",
+          "named": true
+        },
+        {
+          "type": "type_record",
+          "named": true
+        },
+        {
+          "type": "type_unary",
+          "named": true
+        },
+        {
+          "type": "type_union",
+          "named": true
+        },
+        {
+          "type": "type_variant",
+          "named": true
+        },
+        {
+          "type": "type_variants",
           "named": true
         }
       ]
@@ -538,46 +515,10 @@
     "type": "type_args",
     "named": true,
     "fields": {
-      "args": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "type_args",
-            "named": true
-          }
-        ]
-      },
-      "suffix": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "type_array",
-            "named": true
-          },
-          {
-            "type": "type_optional",
-            "named": true
-          },
-          {
-            "type": "type_pointer",
-            "named": true
-          }
-        ]
-      },
       "type": {
         "multiple": true,
         "required": false,
         "types": [
-          {
-            "type": "(",
-            "named": false
-          },
-          {
-            "type": ")",
-            "named": false
-          },
           {
             "type": ".",
             "named": false
@@ -585,30 +526,6 @@
           {
             "type": "identifier",
             "named": true
-          },
-          {
-            "type": "table_constructor",
-            "named": true
-          },
-          {
-            "type": "type_args",
-            "named": true
-          },
-          {
-            "type": "type_array",
-            "named": true
-          },
-          {
-            "type": "type_optional",
-            "named": true
-          },
-          {
-            "type": "type_pointer",
-            "named": true
-          },
-          {
-            "type": "|",
-            "named": false
           }
         ]
       }
@@ -659,6 +576,42 @@
         },
         {
           "type": "type",
+          "named": true
+        },
+        {
+          "type": "type_array",
+          "named": true
+        },
+        {
+          "type": "type_enum",
+          "named": true
+        },
+        {
+          "type": "type_generic",
+          "named": true
+        },
+        {
+          "type": "type_pointer",
+          "named": true
+        },
+        {
+          "type": "type_record",
+          "named": true
+        },
+        {
+          "type": "type_unary",
+          "named": true
+        },
+        {
+          "type": "type_union",
+          "named": true
+        },
+        {
+          "type": "type_variant",
+          "named": true
+        },
+        {
+          "type": "type_variants",
           "named": true
         },
         {
@@ -675,6 +628,328 @@
   {
     "type": "type_array",
     "named": true,
+    "fields": {
+      "arraytype": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_enum",
+    "named": true,
+    "fields": {
+      "enumtype": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      },
+      "field": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "type_enum_field",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "type_enum_field",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "binary_operation",
+          "named": true
+        },
+        {
+          "type": "boolean_literal",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "nil_literal",
+          "named": true
+        },
+        {
+          "type": "nilptr_literal",
+          "named": true
+        },
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "prefix_exp",
+          "named": true
+        },
+        {
+          "type": "preprocess_expr",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        },
+        {
+          "type": "table_constructor",
+          "named": true
+        },
+        {
+          "type": "type",
+          "named": true
+        },
+        {
+          "type": "unary_operation",
+          "named": true
+        },
+        {
+          "type": "varargs",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_generic",
+    "named": true,
+    "fields": {
+      "args": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_args",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": ".",
+            "named": false
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "type_array",
+            "named": true
+          },
+          {
+            "type": "type_enum",
+            "named": true
+          },
+          {
+            "type": "type_generic",
+            "named": true
+          },
+          {
+            "type": "type_pointer",
+            "named": true
+          },
+          {
+            "type": "type_record",
+            "named": true
+          },
+          {
+            "type": "type_unary",
+            "named": true
+          },
+          {
+            "type": "type_union",
+            "named": true
+          },
+          {
+            "type": "type_variant",
+            "named": true
+          },
+          {
+            "type": "type_variants",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "table_constructor",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_pointer",
+    "named": true,
+    "fields": {
+      "pointertype": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "type_record",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "type_record_field",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_record_field",
+    "named": true,
+    "fields": {
+      "type": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": ".",
+            "named": false
+          },
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type_array",
+          "named": true
+        },
+        {
+          "type": "type_enum",
+          "named": true
+        },
+        {
+          "type": "type_generic",
+          "named": true
+        },
+        {
+          "type": "type_pointer",
+          "named": true
+        },
+        {
+          "type": "type_record",
+          "named": true
+        },
+        {
+          "type": "type_unary",
+          "named": true
+        },
+        {
+          "type": "type_union",
+          "named": true
+        },
+        {
+          "type": "type_variant",
+          "named": true
+        },
+        {
+          "type": "type_variants",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_unary",
+    "named": true,
+    "fields": {
+      "suffix": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type_unary_array",
+            "named": true
+          },
+          {
+            "type": "type_unary_optional",
+            "named": true
+          },
+          {
+            "type": "type_unary_pointer",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "type",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "type_unary_array",
+    "named": true,
     "fields": {},
     "children": {
       "multiple": false,
@@ -736,9 +1011,225 @@
     }
   },
   {
-    "type": "type_pointer",
+    "type": "type_unary_pointer",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "type_union",
+    "named": true,
+    "fields": {
+      "field": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "type_union_field",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "type_union_field",
+    "named": true,
+    "fields": {
+      "type": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": ".",
+            "named": false
+          },
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type_array",
+          "named": true
+        },
+        {
+          "type": "type_enum",
+          "named": true
+        },
+        {
+          "type": "type_generic",
+          "named": true
+        },
+        {
+          "type": "type_pointer",
+          "named": true
+        },
+        {
+          "type": "type_record",
+          "named": true
+        },
+        {
+          "type": "type_unary",
+          "named": true
+        },
+        {
+          "type": "type_union",
+          "named": true
+        },
+        {
+          "type": "type_variant",
+          "named": true
+        },
+        {
+          "type": "type_variants",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "type_variant",
+    "named": true,
+    "fields": {
+      "arg": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "(",
+            "named": false
+          },
+          {
+            "type": ")",
+            "named": false
+          },
+          {
+            "type": "binary_operation",
+            "named": true
+          },
+          {
+            "type": "boolean_literal",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "nil_literal",
+            "named": true
+          },
+          {
+            "type": "nilptr_literal",
+            "named": true
+          },
+          {
+            "type": "number",
+            "named": true
+          },
+          {
+            "type": "prefix_exp",
+            "named": true
+          },
+          {
+            "type": "preprocess_expr",
+            "named": true
+          },
+          {
+            "type": "string",
+            "named": true
+          },
+          {
+            "type": "table_constructor",
+            "named": true
+          },
+          {
+            "type": "type",
+            "named": true
+          },
+          {
+            "type": "unary_operation",
+            "named": true
+          },
+          {
+            "type": "varargs",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "type_variants",
+    "named": true,
+    "fields": {
+      "type": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": ".",
+            "named": false
+          },
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "type_array",
+          "named": true
+        },
+        {
+          "type": "type_enum",
+          "named": true
+        },
+        {
+          "type": "type_generic",
+          "named": true
+        },
+        {
+          "type": "type_pointer",
+          "named": true
+        },
+        {
+          "type": "type_record",
+          "named": true
+        },
+        {
+          "type": "type_unary",
+          "named": true
+        },
+        {
+          "type": "type_union",
+          "named": true
+        },
+        {
+          "type": "type_variant",
+          "named": true
+        },
+        {
+          "type": "type_variants",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "unary_operation",
@@ -872,6 +1363,10 @@
     "named": false
   },
   {
+    "type": ":",
+    "named": false
+  },
+  {
     "type": ";",
     "named": false
   },
@@ -928,8 +1423,24 @@
     "named": false
   },
   {
+    "type": "_expression",
+    "named": true
+  },
+  {
     "type": "and",
     "named": false
+  },
+  {
+    "type": "array",
+    "named": false
+  },
+  {
+    "type": "enum",
+    "named": false
+  },
+  {
+    "type": "escape_sequence",
+    "named": true
   },
   {
     "type": "false",
@@ -956,8 +1467,12 @@
     "named": false
   },
   {
-    "type": "string_content",
-    "named": true
+    "type": "pointer",
+    "named": false
+  },
+  {
+    "type": "record",
+    "named": false
   },
   {
     "type": "string_ending",
@@ -972,12 +1487,20 @@
     "named": false
   },
   {
-    "type": "type_optional",
+    "type": "type_unary_optional",
     "named": true
+  },
+  {
+    "type": "union",
+    "named": false
   },
   {
     "type": "varargs",
     "named": true
+  },
+  {
+    "type": "variant",
+    "named": false
   },
   {
     "type": "{",
